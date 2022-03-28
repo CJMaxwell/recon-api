@@ -1,0 +1,29 @@
+{
+  "name": "recon-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node dist/app.js",
+    "dev": "nodemon --exec npx ts-node src/app.ts",
+    "build": "npx tsc -p ."
+  },
+  "author": "Maxwell Chukwunonyerem",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "knex": "^1.0.4",
+    "tedious": "^14.4.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.12",
+    "@types/express": "^4.17.13",
+    "@types/node": "^17.0.23",
+    "nodemon": "^2.0.15",
+    "sequelize-cli": "^6.4.1",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.3"
+  }
+}
