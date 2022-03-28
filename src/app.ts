@@ -67,7 +67,7 @@ app.get('/manual', (req, res)=>{
     })
 });
 
-app.get('/account-payable', (req, res)=>{
+app.get('/account-payable', (req, res)=> {
     // knex.select('*').from('manualmatch').then((data: any) =>{
     //     res.json({
     //         message: 'success',
