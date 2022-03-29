@@ -64,7 +64,7 @@ app.get('/manual', (req, res)=>{
             message: 'success',
             data
         })
-    })
+    });
 });
 
 app.get('/account-payable', (req, res)=> {
@@ -75,26 +75,25 @@ app.get('/account-payable', (req, res)=> {
     //     })
     // })
 
-    //  knex
-    //     .select(
-    //         'u.id',
-    //         'u.first_name',
-    //         'u.last_name',
-    //         'u.username',
-    //         'u.image_url',
-    //         'u.is_admin',
-    //         'u.phone',
-    //         'u.info',
-    //         'la.email',
-    //         'cu.customer_id',
-    //         'cu.department_id'
-    //     )
-    //     .from('user AS u')
-    //     .leftJoin('local_auth AS la', 'la.user_id', 'u.id')
-    //     .leftJoin('customer_user AS cu', 'cu.user_id', 'u.id')
-    //     .where('u.id', '=', id)
-    //     .first()
-    // );
+     knex
+        .select(
+            'gl.MainAccount AS glMainAccount',
+            'gl.Name AS glName',
+            'gl.[Closing balance] AS closingBalance',
+            'ar.GLCode',
+            knex.raw('SUM(ar.[Balance]) as total')
+        )
+        .from('AR_Table AS ar')
+        .join('GL_Table AS gl', 'ar.GLCode', '=', 'gl.MainAccount')
+        .groupBy('ar.GLCode','gl.MainAccount', 'gl.Name', 'gl.[Closing balance]')
+        .then((data: any) => {
+            res.json({
+                message: 'success',
+                data
+            })
+        } );
+        // .leftJoin('customer_user AS cu', 'cu.user_id', 'u.id')
+        // .where('u.id', '=', id)
 })
 
 app.listen(process.env.PORT || 4000, () => console.log(`Server started on http://localhost:${process.env.PORT}`));
