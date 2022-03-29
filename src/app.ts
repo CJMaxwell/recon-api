@@ -31,7 +31,7 @@ app.get('/', (req, res) => {
     });
 });
 
-app.get('/firstlevel', (req, res)=>{
+app.get('/firstlevel', (req, res)=> {
     knex.select('*').from('firstlevelmatch').then((data: any) =>{
         res.json({
             message: 'success',
@@ -40,7 +40,7 @@ app.get('/firstlevel', (req, res)=>{
     })
 });
 
-app.get('/secondlevel', (req, res)=>{
+app.get('/secondlevel', (req, res)=> {
     knex.select('*').from('secondlevelmatch').then((data: any) =>{
         res.json({
             message: 'success',
@@ -49,7 +49,7 @@ app.get('/secondlevel', (req, res)=>{
     })
 });
 
-app.get('/thirdlevel', (req, res)=>{
+app.get('/thirdlevel', (req, res)=> {
     knex.select('*').from('thirdlevelmatch').then((data: any) =>{
         res.json({
             message: 'success',
@@ -58,7 +58,7 @@ app.get('/thirdlevel', (req, res)=>{
     })
 });
 
-app.get('/manual', (req, res)=>{
+app.get('/manual', (req, res)=> {
     knex.select('*').from('manualmatch').then((data: any) =>{
         res.json({
             message: 'success',
@@ -68,32 +68,37 @@ app.get('/manual', (req, res)=>{
 });
 
 app.get('/account-payable', (req, res)=> {
-    // knex.select('*').from('manualmatch').then((data: any) =>{
-    //     res.json({
-    //         message: 'success',
-    //         data
-    //     })
-    // })
+    knex
+    .select(
+        'gl.MainAccount AS glMainAccount',
+        'gl.Name AS glName',
+        'gl.[Closing balance] AS closingBalance',
+        'ar.GLCode',
+        knex.raw('SUM(ar.[Balance]) as total')
+    )
+    .from('AR_Table AS ar')
+    .join('GL_Table AS gl', 'ar.GLCode', '=', 'gl.MainAccount')
+    .groupBy('ar.GLCode','gl.MainAccount', 'gl.Name', 'gl.[Closing balance]')
+    .then((data: any) => {
+        res.json({
+            message: 'success',
+            data
+        })
+    });
+})
 
+app.get('/account-payable/:glCode', (req, res)=> {
+    const { glCode } = req.params;
      knex
-        .select(
-            'gl.MainAccount AS glMainAccount',
-            'gl.Name AS glName',
-            'gl.[Closing balance] AS closingBalance',
-            'ar.GLCode',
-            knex.raw('SUM(ar.[Balance]) as total')
-        )
-        .from('AR_Table AS ar')
-        .join('GL_Table AS gl', 'ar.GLCode', '=', 'gl.MainAccount')
-        .groupBy('ar.GLCode','gl.MainAccount', 'gl.Name', 'gl.[Closing balance]')
+        .select('*')
+        .from('AR_Table')
+        .where('GLCode', glCode)
         .then((data: any) => {
             res.json({
                 message: 'success',
                 data
             })
         } );
-        // .leftJoin('customer_user AS cu', 'cu.user_id', 'u.id')
-        // .where('u.id', '=', id)
 })
 
 app.listen(process.env.PORT || 4000, () => console.log(`Server started on http://localhost:${process.env.PORT}`));
