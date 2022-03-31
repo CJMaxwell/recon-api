@@ -101,4 +101,30 @@ app.get('/account-payable/:glCode', (req, res)=> {
         } );
 })
 
+app.get('/gl-overview', (req, res)=> {
+    knex
+       .select('*')
+       .from('GL_Table')
+       .then((data: any) => {
+           res.json({
+               message: 'success',
+               data
+           })
+   });
+})
+
+app.get('/bank-statement', (req, res)=> {
+     knex
+        .select('*')
+        .from('AR_Table')
+        .then((data: any) => {
+            res.json({
+                message: 'success',
+                data
+            })
+    });
+});
+
+
+
 app.listen(process.env.PORT || 4000, () => console.log(`Server started on http://localhost:${process.env.PORT}`));
