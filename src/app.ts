@@ -67,18 +67,36 @@ app.get('/manual', (req, res)=> {
     });
 });
 
+app.get('/bs-only', (req, res)=> {
+    knex.select('*').from('bsonly').whereNotNull('Date').then((data: any) =>{
+        res.json({
+            message: 'success',
+            data
+        })
+    });
+});
+
+app.get('/leger-only', (req, res)=> {
+    knex.select('*').from('legeronly').then((data: any) =>{
+        res.json({
+            message: 'success',
+            data
+        })
+    });
+});
+
 app.get('/account-payable', (req, res)=> {
     knex
     .select(
         'gl.MainAccount AS glMainAccount',
         'gl.Name AS glName',
         'gl.[Closing balance] AS closingBalance',
-        'ar.GLCode',
+        'ar.[GL Code]',
         knex.raw('SUM(ar.[Balance]) as total')
     )
     .from('AR_Table AS ar')
-    .join('GL_Table AS gl', 'ar.GLCode', '=', 'gl.MainAccount')
-    .groupBy('ar.GLCode','gl.MainAccount', 'gl.Name', 'gl.[Closing balance]')
+    .join('GL_Table AS gl', 'ar.[GL Code]', '=', 'gl.MainAccount')
+    .groupBy('ar.[GL Code]','gl.MainAccount', 'gl.Name', 'gl.[Closing balance]')
     .then((data: any) => {
         res.json({
             message: 'success',
@@ -92,7 +110,7 @@ app.get('/account-payable/:glCode', (req, res)=> {
      knex
         .select('*')
         .from('AR_Table')
-        .where('GLCode', glCode)
+        .where('[GL Code]', glCode)
         .then((data: any) => {
             res.json({
                 message: 'success',
