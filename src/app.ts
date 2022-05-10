@@ -12,6 +12,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
 const knex = require('knex')({
     client: 'mssql',
     connection: {
@@ -19,8 +20,9 @@ const knex = require('knex')({
         user: 'sa',
         password: 'password',
         options: {
-            database: 'Recon',
-            instanceName: 'MSSQL14'
+            port: 59352,
+            database: 'Recon_DB',
+            instanceName: 'MSSQLSERVER01',
         }
     }
 });
@@ -31,8 +33,9 @@ app.get('/', (req, res) => {
     });
 });
 
-app.get('/firstlevel', (req, res)=> {
-    knex.select('*').from('firstlevelmatch').then((data: any) =>{
+app.get('/firstlevel', (req, res) => {
+    knex.select('*').from('firstlevelmatch').then((data: any) => {
+        console.log(data, 'DATA');
         res.json({
             message: 'success',
             data
@@ -40,8 +43,8 @@ app.get('/firstlevel', (req, res)=> {
     })
 });
 
-app.get('/secondlevel', (req, res)=> {
-    knex.select('*').from('secondlevelmatch').then((data: any) =>{
+app.get('/secondlevel', (req, res) => {
+    knex.select('*').from('secondlevelmatch').then((data: any) => {
         res.json({
             message: 'success',
             data
@@ -49,8 +52,8 @@ app.get('/secondlevel', (req, res)=> {
     })
 });
 
-app.get('/thirdlevel', (req, res)=> {
-    knex.select('*').from('thirdlevelmatch').then((data: any) =>{
+app.get('/thirdlevel', (req, res) => {
+    knex.select('*').from('thirdlevelmatch').then((data: any) => {
         res.json({
             message: 'success',
             data
@@ -58,8 +61,8 @@ app.get('/thirdlevel', (req, res)=> {
     })
 });
 
-app.get('/manual', (req, res)=> {
-    knex.select('*').from('manualmatch').then((data: any) =>{
+app.get('/manual', (req, res) => {
+    knex.select('*').from('manualmatch').then((data: any) => {
         res.json({
             message: 'success',
             data
@@ -67,8 +70,8 @@ app.get('/manual', (req, res)=> {
     });
 });
 
-app.get('/bs-only', (req, res)=> {
-    knex.select('*').from('bsonly').whereNotNull('Date').then((data: any) =>{
+app.get('/bs-only', (req, res) => {
+    knex.select('*').from('bsOnly').whereNotNull('Date_y').then((data: any) => {
         res.json({
             message: 'success',
             data
@@ -76,8 +79,8 @@ app.get('/bs-only', (req, res)=> {
     });
 });
 
-app.get('/leger-only', (req, res)=> {
-    knex.select('*').from('legeronly').then((data: any) =>{
+app.get('/leger-only', (req, res) => {
+    knex.select('*').from('ledgeronly').then((data: any) => {
         res.json({
             message: 'success',
             data
@@ -85,62 +88,106 @@ app.get('/leger-only', (req, res)=> {
     });
 });
 
-app.get('/account-payable', (req, res)=> {
+// app.get('/account-payable', (req, res) => {
+//     knex
+//         .select(
+//             'gl.MainAccount AS glMainAccount',
+//             'gl.Name AS glName',
+//             'gl.[Closing balance] AS closingBalance',
+//             'ar.[GL Code]',
+//             knex.raw('SUM(ar.[Balance]) as total')
+//         )
+//         .from('AR_Table AS ar')
+//         .join('GL_Table AS gl', 'ar.[GL Code]', '=', 'gl.MainAccount')
+//         .groupBy('ar.[GL Code]', 'gl.MainAccount', 'gl.Name', 'gl.[Closing balance]')
+//         .then((data: any) => {
+//             res.json({
+//                 message: 'success',
+//                 data
+//             })
+//         });
+// })
+
+// app.get('/account-payable/:glCode', (req, res) => {
+//     const { glCode } = req.params;
+//     knex
+//         .select('*')
+//         .from('AP_Table')
+//         .where('[GL Code]', glCode)
+//         .then((data: any) => {
+//             res.json({
+//                 message: 'success',
+//                 data
+//             })
+//         });
+// })
+
+app.get('/account-payable', (req, res) => {
+    let selection = ['APJ000073785', 'APJ000073788', 'APJ000073792', 'APJ000073793', 'APJ000073796'];
     knex
-    .select(
-        'gl.MainAccount AS glMainAccount',
-        'gl.Name AS glName',
-        'gl.[Closing balance] AS closingBalance',
-        'ar.[GL Code]',
-        knex.raw('SUM(ar.[Balance]) as total')
-    )
-    .from('AR_Table AS ar')
-    .join('GL_Table AS gl', 'ar.[GL Code]', '=', 'gl.MainAccount')
-    .groupBy('ar.[GL Code]','gl.MainAccount', 'gl.Name', 'gl.[Closing balance]')
-    .then((data: any) => {
-        res.json({
-            message: 'success',
-            data
-        })
-    });
-})
-
-app.get('/account-payable/:glCode', (req, res)=> {
-    const { glCode } = req.params;
-     knex
-        .select('*')
-        .from('AR_Table')
-        .where('[GL Code]', glCode)
+        .select(
+            '[Journal number] AS journalNumber',
+            'Voucher AS voucher',
+            'Description AS description',
+            'Date AS date',
+            '[Ledger dimension type] AS ledgerDimensionType',
+            'Amount AS amount',
+        )
+        .from('GL_AP_Table')
+        .whereIn('Voucher', selection)
         .then((data: any) => {
             res.json({
                 message: 'success',
                 data
             })
-        } );
+        });
 })
 
-app.get('/gl-overview', (req, res)=> {
+app.get('/account-payable/:voucher', (req, res) => {
+    const { voucher } = req.params;
     knex
-       .select('*')
-       .from('GL_Table')
-       .then((data: any) => {
-           res.json({
-               message: 'success',
-               data
-           })
-   });
-})
-
-app.get('/bank-statement', (req, res)=> {
-     knex
-        .select('*')
-        .from('AR_Table')
+        .select(
+            '[Invoice account] AS invoiceNumber',
+            'Date AS date',
+            'Invoice AS invoice',
+            'Voucher AS voucher',
+            'Currency AS currency',
+            '[Invoice amount] AS invoiceAmount',
+            '[Posted via intercompany] AS postingType',
+            '[Due date] AS dueDate'
+        )
+        .from('AP_Table')
+        .where('Voucher', voucher)
         .then((data: any) => {
             res.json({
                 message: 'success',
                 data
             })
-    });
+        });
+})
+
+app.get('/gl-overview', (req, res) => {
+    knex
+        .select('*')
+        .from('GL_AP_Table')
+        .then((data: any) => {
+            res.json({
+                message: 'success',
+                data
+            })
+        });
+})
+
+app.get('/bank-statement', (req, res) => {
+    knex
+        .select('*')
+        .from('AP_Table')
+        .then((data: any) => {
+            res.json({
+                message: 'success',
+                data
+            })
+        });
 });
 
 
