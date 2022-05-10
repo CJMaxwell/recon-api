@@ -35,7 +35,6 @@ app.get('/', (req, res) => {
 
 app.get('/firstlevel', (req, res) => {
     knex.select('*').from('firstlevelmatch').then((data: any) => {
-        console.log(data, 'DATA');
         res.json({
             message: 'success',
             data
@@ -71,21 +70,30 @@ app.get('/manual', (req, res) => {
 });
 
 app.get('/bs-only', (req, res) => {
-    knex.select('*').from('bsOnly').whereNotNull('Date_y').then((data: any) => {
-        res.json({
-            message: 'success',
-            data
-        })
-    });
+    knex.select('*')
+        .from('bsOnly')
+        .whereNotNull('Date_y')
+        .limit(100)
+        .offset(0)
+        .then((data: any) => {
+            res.json({
+                message: 'success',
+                data
+            })
+        });
 });
 
 app.get('/leger-only', (req, res) => {
-    knex.select('*').from('ledgeronly').then((data: any) => {
-        res.json({
-            message: 'success',
-            data
-        })
-    });
+    knex.select('*')
+        .from('ledgeronly')
+        .limit(100)
+        .offset(0)
+        .then((data: any) => {
+            res.json({
+                message: 'success',
+                data
+            })
+        });
 });
 
 // app.get('/account-payable', (req, res) => {
@@ -126,15 +134,18 @@ app.get('/account-payable', (req, res) => {
     let selection = ['APJ000073785', 'APJ000073788', 'APJ000073792', 'APJ000073793', 'APJ000073796'];
     knex
         .select(
-            '[Journal number] AS journalNumber',
-            'Voucher AS voucher',
-            'Description AS description',
-            'Date AS date',
-            '[Ledger dimension type] AS ledgerDimensionType',
-            'Amount AS amount',
+            'gl.[Journal number] AS journalNumber',
+            'gl.Voucher AS voucher',
+            'gl.Description AS description',
+            'gl.Date AS date',
+            'gl.[Ledger dimension type] AS ledgerDimensionType',
+            'gl.Amount AS amount',
+            knex.raw('SUM(ap.[Invoice amount]) as total')
         )
-        .from('GL_AP_Table')
-        .whereIn('Voucher', selection)
+        .from('GL_AP_Table AS gl')
+        .join('AP_Table AS ap', 'ap.Voucher', '=', 'gl.Voucher')
+        .whereIn('gl.Voucher', selection)
+        .groupBy('ap.Voucher', 'gl.Voucher', 'gl.Description', 'gl.Date', 'gl.[Ledger dimension type]', 'gl.Amount', 'gl.[Journal number]', 'gl.Amount')
         .then((data: any) => {
             res.json({
                 message: 'success',
@@ -170,6 +181,8 @@ app.get('/gl-overview', (req, res) => {
     knex
         .select('*')
         .from('GL_AP_Table')
+        .limit(100)
+        .offset(0)
         .then((data: any) => {
             res.json({
                 message: 'success',
@@ -182,6 +195,8 @@ app.get('/bank-statement', (req, res) => {
     knex
         .select('*')
         .from('AP_Table')
+        .limit(100)
+        .offset(0)
         .then((data: any) => {
             res.json({
                 message: 'success',
